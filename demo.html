@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SoundEffectManager Demo</title>
+        <script src="sound-effect-manager.js"></script>
+        <script>
+            window.sm = new SoundEffectManager();
+            sm.loadFile('taps.mp3', 'taps');
+            sm.loadFile('rocket.wav', 'rocket');
+        </script>
+    </head>
+    <body>
+        <h1>SoundEffectManager Demo</h1>
+        <p>All it's doing is this to get things ready:</p>
+
+        <pre><code>
+window.sm = new SoundEffectManager();
+sm.loadFile('taps.mp3', 'taps');
+sm.loadFile('rocket.wav', 'rocket');
+</code></pre>
+
+        <p>Then <code>sm.play('rocket')</code> to play it.</p>
+
+        <p>Press these like a crazyperson (in chrome or newer safari) to try it:</p>
+
+
+        <button onclick="sm.play('rocket')">Play Rocket</button>
+        <button onclick="sm.play('taps')">Play Taps</button>
+        <p>Now, go follow <a href="http://twitter.com/henrikjoreteg">@HenrikJoreteg</a> on twitter and sign up for <a href="https://andbnag.com">And Bang</a> to hear that amazing rocket sound every time you finish something.</p>
+    </body>
+</html>
