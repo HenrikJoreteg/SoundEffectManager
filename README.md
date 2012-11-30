@@ -16,11 +16,27 @@ It seems to work with wav and mp3 files.
 
 - Only works in newer chrome and safari
 
-## How to use this
+## Installing
 
 `npm install sound-effect-manager`
 
-Or just grab the single soundeffectmanager.js file and use it.
+or just grab the single sound-effect-manager.js file and use it.
+
+## Using it
+
+```js
+// just init the sound effect manager
+window.sm = new SoundEffectManager();
+
+// load some files by passing it a url and a name
+sm.loadFile('taps.mp3', 'taps');
+sm.loadFile('rocket.wav', 'rocket');
+
+// then play the sounds like so:
+sm.play('rocket');
+
+// that's it!
+```
 
 ## License
 
