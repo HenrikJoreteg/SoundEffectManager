@@ -28,4 +28,4 @@ MIT
 
 ## Credits
 
-Built (rather hastily) by @HenrikJoreteg for use in http://andbnag.com. Which you should totally check out if you work with a team, for anything, ever.
+Built (rather hastily) by [@HenrikJoreteg](http://twitter.com/henrikjoreteg) for use in [And Bang](http://andbnag.com). Which you should totally check out if you work with a team, for anything, ever.
