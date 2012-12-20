@@ -23,7 +23,7 @@ By @HenrikJoreteg from &yet
         if (this.support) {
             this._loadWebAudioFile(url, name, delay);
         } else {
-            this._loadWaveFile(url.replace('\\.mp3', '.wav'), name, delay);
+            this._loadWaveFile(url.replace('.mp3', '.wav'), name, delay);
         }
     };
 
