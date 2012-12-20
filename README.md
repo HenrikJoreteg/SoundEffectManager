@@ -38,6 +38,10 @@ sm.play('rocket');
 // that's it!
 ```
 
+## Extra Goodies
+
+It will fall back to using `new Audio()` if web audio API isn't available and it will try to load a .wav file version for that case (since it's likely in firefox).
+
 ## License
 
 MIT

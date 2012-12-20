@@ -14,12 +14,21 @@ By @HenrikJoreteg from &yet
         this.support = !!window.webkitAudioContext;
         if (this.support) {
             this.context = new webkitAudioContext();
-            this.sounds = {};
         }
+        this.sounds = {};
     }
 
     // async load a file at a given URL, store it as 'name'.
-    SoundEffectManager.prototype.loadFile = function (url, name, optionalCallback) {
+    SoundEffectManager.prototype.loadFile = function (url, name, delay) {
+        if (this.support) {
+            this._loadWebAudioFile(url, name, delay);
+        } else {
+            this._loadWaveFile(url.replace('\.mp3', '.wav'), name, delay);
+        }
+    };
+
+    // async load a file at a given URL, store it as 'name'.
+    SoundEffectManager.prototype._loadWebAudioFile = function (url, name, delay) {
         if (!this.support) return;
         var self = this,
             request = new XMLHttpRequest();
@@ -28,14 +37,30 @@ By @HenrikJoreteg from &yet
         request.responseType = "arraybuffer";
         request.onload = function () { 
             self.sounds[name] = self.context.createBuffer(request.response, true);
-            if (optionalCallback) optionalCallback();
         };
 
-        request.send();
+        setTimeout(function () {
+            request.send();
+        }, delay || 0);
     };
 
-    SoundEffectManager.prototype.play = function (soundName) {
-        if (!this.support) return;
+    SoundEffectManager.prototype._loadWaveFile = function (url, name, delay, multiplexLimit) {
+        var self = this,
+            limit = multiplexLimit || 3;
+        setTimeout(function () {
+            var a, i = 0;
+        
+            self.sounds[name] = [];
+            while (i < limit) {
+                a = new Audio();
+                a.src = url;
+                a.load();
+                self.sounds[name][i++] = a;
+            }
+        }, delay || 0);
+    };
+
+    SoundEffectManager.prototype._playWebAudio = function (soundName) {
         var buffer = this.sounds[soundName],
             source;
 
@@ -49,6 +74,54 @@ By @HenrikJoreteg from &yet
         source.connect(this.context.destination); 
         // play it
         source.noteOn(0); 
+    };
+
+    SoundEffectManager.prototype._playWavAudio = function (soundName, loop) {
+        var self = this,
+            audio = this.sounds[soundName],
+            howMany = audio && audio.length || 0,
+            i = 0,
+            currSound;
+
+        if (!audio) return;
+
+        while (i < howMany) {
+            currSound = audio[i++];
+            // this covers case where we loaded an unplayable file type
+            if (currSound.error) return;
+            if (currSound.currentTime === 0 || currSound.currentTime === currSound.duration) {
+                currSound.currentTime = 0;
+                console.log('loop?', !!loop);
+                currSound.loop = !!loop;
+                i = howMany;
+                return currSound.play();
+            }
+        }
+    };    
+
+    SoundEffectManager.prototype.play = function (soundName, loop) {
+        if (this.support) {
+            this._playWebAudio(soundName, loop);
+        } else {
+            return this._playWavAudio(soundName, loop);
+        }
+    };
+
+    SoundEffectManager.prototype.stop = function (soundName) {
+        if (this.support) {
+            // TODO: this
+        } else {
+            var soundArray = this.sounds[soundName],
+                howMany = soundArray && soundArray.length || 0,
+                i = 0,
+                currSound;
+                
+            while (i < howMany) {
+                currSound = soundArray[i++];
+                currSound.pause();
+                currSound.currentTime = 0;
+            }
+        }
     };
 
     // attach to window or export with commonJS
