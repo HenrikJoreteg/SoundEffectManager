@@ -23,7 +23,7 @@ By @HenrikJoreteg from &yet
         if (this.support) {
             this._loadWebAudioFile(url, name, delay);
         } else {
-            this._loadWaveFile(url.replace('\.mp3', '.wav'), name, delay);
+            this._loadWaveFile(url.replace('\\.mp3', '.wav'), name, delay);
         }
     };
 
@@ -91,7 +91,6 @@ By @HenrikJoreteg from &yet
             if (currSound.error) return;
             if (currSound.currentTime === 0 || currSound.currentTime === currSound.duration) {
                 currSound.currentTime = 0;
-                console.log('loop?', !!loop);
                 currSound.loop = !!loop;
                 i = howMany;
                 return currSound.play();
@@ -115,7 +114,7 @@ By @HenrikJoreteg from &yet
                 howMany = soundArray && soundArray.length || 0,
                 i = 0,
                 currSound;
-                
+
             while (i < howMany) {
                 currSound = soundArray[i++];
                 currSound.pause();
