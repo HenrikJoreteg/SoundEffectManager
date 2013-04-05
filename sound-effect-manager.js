@@ -1,4 +1,4 @@
-/* 
+/*
 SoundEffectManager
 
 Loads and plays sound effects useing
@@ -19,24 +19,25 @@ By @HenrikJoreteg from &yet
     }
 
     // async load a file at a given URL, store it as 'name'.
-    SoundEffectManager.prototype.loadFile = function (url, name, delay) {
+    SoundEffectManager.prototype.loadFile = function (url, name, delay, cb) {
         if (this.support) {
-            this._loadWebAudioFile(url, name, delay);
+            this._loadWebAudioFile(url, name, delay, cb);
         } else {
-            this._loadWaveFile(url.replace('.mp3', '.wav'), name, delay);
+            this._loadWaveFile(url.replace('.mp3', '.wav'), name, delay, 3, cb);
         }
     };
 
     // async load a file at a given URL, store it as 'name'.
-    SoundEffectManager.prototype._loadWebAudioFile = function (url, name, delay) {
+    SoundEffectManager.prototype._loadWebAudioFile = function (url, name, delay, cb) {
         if (!this.support) return;
         var self = this,
             request = new XMLHttpRequest();
-        
+
         request.open("GET", url, true);
         request.responseType = "arraybuffer";
-        request.onload = function () { 
+        request.onload = function () {
             self.sounds[name] = self.context.createBuffer(request.response, true);
+            cb && cb();
         };
 
         setTimeout(function () {
@@ -44,16 +45,20 @@ By @HenrikJoreteg from &yet
         }, delay || 0);
     };
 
-    SoundEffectManager.prototype._loadWaveFile = function (url, name, delay, multiplexLimit) {
+    SoundEffectManager.prototype._loadWaveFile = function (url, name, delay, multiplexLimit, cb) {
         var self = this,
             limit = multiplexLimit || 3;
         setTimeout(function () {
             var a, i = 0;
-        
+
             self.sounds[name] = [];
             while (i < limit) {
                 a = new Audio();
                 a.src = url;
+                // for our callback
+                if (i === 0 && cb) {
+                    a.addEventListener('canplaythrough', cb, false);
+                }
                 a.load();
                 self.sounds[name][i++] = a;
             }
@@ -68,12 +73,12 @@ By @HenrikJoreteg from &yet
 
         // creates a sound source
         source = this.context.createBufferSource();
-        // tell the source which sound to play 
-        source.buffer = buffer;                   
-        // connect the source to the context's destination (the speakers) 
-        source.connect(this.context.destination); 
+        // tell the source which sound to play
+        source.buffer = buffer;
+        // connect the source to the context's destination (the speakers)
+        source.connect(this.context.destination);
         // play it
-        source.noteOn(0); 
+        source.noteOn(0);
     };
 
     SoundEffectManager.prototype._playWavAudio = function (soundName, loop) {
@@ -96,7 +101,7 @@ By @HenrikJoreteg from &yet
                 return currSound.play();
             }
         }
-    };    
+    };
 
     SoundEffectManager.prototype.play = function (soundName, loop) {
         if (this.support) {
