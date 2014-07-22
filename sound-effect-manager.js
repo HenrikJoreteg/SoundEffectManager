@@ -36,8 +36,15 @@ By @HenrikJoreteg from &yet
         request.open("GET", url, true);
         request.responseType = "arraybuffer";
         request.onload = function () {
-            self.sounds[name] = self.context.createBuffer(request.response, true);
-            cb && cb();
+            self.context.decodeAudioData(request.response, 
+                function (data) { // Success
+                    self.sounds[name] = data;
+                    cb && cb();
+                },
+                function () { // Error
+                    cb && cb();
+                }
+            );
         };
 
         setTimeout(function () {
