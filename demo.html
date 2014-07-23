@@ -2,7 +2,7 @@
 <html>
     <head>
         <title>SoundEffectManager Demo</title>
-        <script src="sound-effect-manager.js"></script>
+        <script src="build/sound-effect-manager.bundle.js"></script>
         <script>
             window.sm = new SoundEffectManager();
             sm.loadFile('taps.mp3', 'taps', 2000);
@@ -25,7 +25,8 @@ sm.loadFile('rocket.wav', 'rocket');
 
 
         <button onclick="sm.play('rocket')">Play Rocket</button>
-        <button onclick="sm.play('taps')">Play Taps</button>
+        <button onclick="sm.play('taps', true)">Start Taps</button>
+        <button onclick="sm.stop('taps')">Stop Taps</button>
         <p>Now, go follow <a href="http://twitter.com/henrikjoreteg">@HenrikJoreteg</a> on twitter and sign up for <a href="https://andbnag.com">And Bang</a> to hear that amazing rocket sound every time you finish something.</p>
     </body>
 </html>

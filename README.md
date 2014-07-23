@@ -10,23 +10,21 @@ It's significantly better than `<audio>` tags for several reasons:
 - You can multiplex an effect without having to create duplicate tags
 - You can also control volume and add other effects
 
-It seems to work with wav and mp3 files.
-
-## Downsides
-
-- Only works in newer chrome and safari
+<!-- starthide -->
+Part of the [Ampersand.js toolkit](http://ampersandjs.com) for building clientside applications.
+<!-- endhide -->
 
 ## Installing
 
 `npm install sound-effect-manager`
 
-or just grab the single sound-effect-manager.js file and use it.
-
 ## Using it
 
 ```js
 // just init the sound effect manager
-window.sm = new SoundEffectManager();
+var SoundEffectManager = require('sound-effect-manager');
+
+var sm = new SoundEffectManager();
 
 // load some files by passing it a url and a name
 sm.loadFile('taps.mp3', 'taps');
@@ -35,12 +33,14 @@ sm.loadFile('rocket.wav', 'rocket');
 // then play the sounds like so:
 sm.play('rocket');
 
+// or play a sound in looping mode:
+sm.play('taps', true);
+
+// and to stop a loop:
+sm.stop('taps');
+
 // that's it!
 ```
-
-## Extra Goodies
-
-It will fall back to using `new Audio()` if web audio API isn't available and it will try to load a .wav file version for that case (since it's likely in firefox).
 
 ## License
 

@@ -6,142 +6,158 @@ HTML5 Web Audio API (as only available in webkit, at the moment).
 
 By @HenrikJoreteg from &yet
 */
-/*global webkitAudioContext define*/
-(function () {
-    var root = this;
 
-    function SoundEffectManager() {
-        this.support = !!window.webkitAudioContext;
-        if (this.support) {
-            this.context = new webkitAudioContext();
-        }
-        this.sounds = {};
+
+function SoundEffectManager () {
+    this.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+    this.support = !!this.AudioContext;
+    if (this.support) {
+        this.context = new this.AudioContext();
     }
 
-    // async load a file at a given URL, store it as 'name'.
-    SoundEffectManager.prototype.loadFile = function (url, name, delay, cb) {
-        if (this.support) {
-            this._loadWebAudioFile(url, name, delay, cb);
-        } else {
-            this._loadWaveFile(url.replace('.mp3', '.wav'), name, delay, 3, cb);
-        }
-    };
+    this.sounds = {};
+    this.sources = {};
+}
 
-    // async load a file at a given URL, store it as 'name'.
-    SoundEffectManager.prototype._loadWebAudioFile = function (url, name, delay, cb) {
-        if (!this.support) return;
-        var self = this,
-            request = new XMLHttpRequest();
+// async load a file at a given URL, store it as 'name'.
+SoundEffectManager.prototype.loadFile = function (url, name, delay, cb) {
+    if (this.support) {
+        this._loadWebAudioFile(url, name, delay, cb);
+    } else {
+        this._loadWaveFile(url.replace('.mp3', '.wav'), name, delay, 3, cb);
+    }
+};
 
-        request.open("GET", url, true);
-        request.responseType = "arraybuffer";
-        request.onload = function () {
-            self.context.decodeAudioData(request.response, 
-                function (data) { // Success
-                    self.sounds[name] = data;
-                    cb && cb();
-                },
-                function () { // Error
-                    cb && cb();
+// async load a file at a given URL, store it as 'name'.
+SoundEffectManager.prototype._loadWebAudioFile = function (url, name, delay, cb) {
+    if (!this.support) {
+        return;
+    }
+
+    var self = this;
+    var request = new XMLHttpRequest();
+
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
+    request.onload = function () {
+        self.context.decodeAudioData(request.response,
+            function (data) { // Success
+                self.sounds[name] = data;
+                if (cb) {
+                    cb(null, data);
                 }
-            );
-        };
-
-        setTimeout(function () {
-            request.send();
-        }, delay || 0);
-    };
-
-    SoundEffectManager.prototype._loadWaveFile = function (url, name, delay, multiplexLimit, cb) {
-        var self = this,
-            limit = multiplexLimit || 3;
-        setTimeout(function () {
-            var a, i = 0;
-
-            self.sounds[name] = [];
-            while (i < limit) {
-                a = new Audio();
-                a.src = url;
-                // for our callback
-                if (i === 0 && cb) {
-                    a.addEventListener('canplaythrough', cb, false);
+            },
+            function (err) { // Error
+                if (cb) {
+                    cb(err);
                 }
-                a.load();
-                self.sounds[name][i++] = a;
             }
-        }, delay || 0);
+        );
     };
 
-    SoundEffectManager.prototype._playWebAudio = function (soundName) {
-        var buffer = this.sounds[soundName],
-            source;
+    setTimeout(function () {
+        request.send();
+    }, delay || 0);
+};
 
-        if (!buffer) return;
+SoundEffectManager.prototype._loadWaveFile = function (url, name, delay, multiplexLimit, cb) {
+    var self = this;
+    var limit = multiplexLimit || 3;
 
-        // creates a sound source
-        source = this.context.createBufferSource();
-        // tell the source which sound to play
-        source.buffer = buffer;
-        // connect the source to the context's destination (the speakers)
-        source.connect(this.context.destination);
-        // play it
-        source.noteOn(0);
-    };
+    setTimeout(function () {
+        var a, i = 0;
 
-    SoundEffectManager.prototype._playWavAudio = function (soundName, loop) {
-        var self = this,
-            audio = this.sounds[soundName],
-            howMany = audio && audio.length || 0,
-            i = 0,
-            currSound;
+        self.sounds[name] = [];
+        while (i < limit) {
+            a = new Audio();
+            a.src = url;
+            // for our callback
+            if (i === 0 && cb) {
+                a.addEventListener('canplaythrough', cb, false);
+            }
+            a.load();
+            self.sounds[name][i++] = a;
+        }
+    }, delay || 0);
+};
 
-        if (!audio) return;
+SoundEffectManager.prototype._playWebAudio = function (soundName, loop) {
+    var buffer = this.sounds[soundName];
+
+    if (!buffer) {
+        return;
+    }
+
+    if (loop && this.sources[soundName]) {
+        // Only start the sound once if it's looping
+        return;
+    }
+
+    var source = this.context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = loop;
+    source.connect(this.context.destination);
+
+    if (loop) {
+        this.sources[soundName] = source;
+    }
+
+    source.start(0);
+};
+
+SoundEffectManager.prototype._playWavAudio = function (soundName, loop) {
+    var audio = this.sounds[soundName];
+    var howMany = audio && audio.length || 0;
+    var i = 0;
+    var currSound;
+
+    if (!audio) {
+        return;
+    }
+
+    while (i < howMany) {
+        currSound = audio[i++];
+        // this covers case where we loaded an unplayable file type
+        if (currSound.error) {
+            return;
+        }
+        if (currSound.currentTime === 0 || currSound.currentTime === currSound.duration) {
+            currSound.currentTime = 0;
+            currSound.loop = !!loop;
+            i = howMany;
+            return currSound.play();
+        }
+    }
+};
+
+SoundEffectManager.prototype.play = function (soundName, loop) {
+    if (this.support) {
+        this._playWebAudio(soundName, loop);
+    } else {
+        return this._playWavAudio(soundName, loop);
+    }
+};
+
+SoundEffectManager.prototype.stop = function (soundName) {
+    if (this.support) {
+        if (this.sources[soundName]) {
+            this.sources[soundName].stop(0);
+            delete this.sources[soundName];
+        }
+    } else {
+        var soundArray = this.sounds[soundName];
+        var howMany = soundArray && soundArray.length || 0;
+        var i = 0;
+        var currSound;
 
         while (i < howMany) {
-            currSound = audio[i++];
-            // this covers case where we loaded an unplayable file type
-            if (currSound.error) return;
-            if (currSound.currentTime === 0 || currSound.currentTime === currSound.duration) {
-                currSound.currentTime = 0;
-                currSound.loop = !!loop;
-                i = howMany;
-                return currSound.play();
-            }
+            currSound = soundArray[i++];
+            currSound.pause();
+            currSound.currentTime = 0;
         }
-    };
-
-    SoundEffectManager.prototype.play = function (soundName, loop) {
-        if (this.support) {
-            this._playWebAudio(soundName, loop);
-        } else {
-            return this._playWavAudio(soundName, loop);
-        }
-    };
-
-    SoundEffectManager.prototype.stop = function (soundName) {
-        if (this.support) {
-            // TODO: this
-        } else {
-            var soundArray = this.sounds[soundName],
-                howMany = soundArray && soundArray.length || 0,
-                i = 0,
-                currSound;
-
-            while (i < howMany) {
-                currSound = soundArray[i++];
-                currSound.pause();
-                currSound.currentTime = 0;
-            }
-        }
-    };
-
-    // attach to window or export with commonJS
-    if (typeof module !== "undefined") {
-        module.exports = SoundEffectManager;
-    } else if (typeof root.define === "function" && define.amd) {
-        root.define(SoundEffectManager);
-    } else {
-        root.SoundEffectManager = SoundEffectManager;
     }
+};
 
-})();
+
+module.exports = SoundEffectManager;

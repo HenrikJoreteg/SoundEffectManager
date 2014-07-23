@@ -9,7 +9,7 @@
   },
   "main": "./sound-effect-manager.js",
   "devDependencies": {
-    "precommit-hook": ""
+    "precommit-hook": "^1.0.3"
   },
   "scripts": {
     "validate": "jshint ."
