@@ -1,15 +1,12 @@
 {
-  "author": "Henrik Joreteg <henrik@andyet.net>",
   "name": "sound-effect-manager",
   "description": "Easy way to manage and play sound effects using HTML5 Web Audio API",
   "version": "1.0.0",
+  "author": "Henrik Joreteg <henrik@andyet.net>",
+  "main": "./sound-effect-manager.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/henrikjoreteg/SoundEffectManager.git"
-  },
-  "main": "./sound-effect-manager.js",
-  "devDependencies": {
-    "precommit-hook": "^1.0.3"
   },
   "scripts": {
     "validate": "jshint ."
